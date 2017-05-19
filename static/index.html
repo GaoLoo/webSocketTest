@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://cdn.bootcss.com/socket.io/2.0.0/socket.io.js"></script>
+    <title>Document</title>
+</head>
+<style>
+html,body,ul,li{
+    padding: 0;
+    margin: 0;
+}
+.msg-list{
+   position:absolute;
+   top:0;
+   bottom: 150px;
+   left:0;
+   right:0;
+   padding:10px;
+   background: #f2f2f2
+}
+.msg-input {
+  position: absolute;
+  width: 100%;
+  bottom:0;
+  line-height: 21px;
+  height:150px
+}
+</style>
+<body>
+    <div id="app"  @keyup.13="create">
+    <ul class="msg-list">
+        <li style="list-style:none" v-for="item in msgList">{{item}}</li>
+    </ul>
+    <textarea class="msg-input" v-model="inputVal"></textarea>
+    </div>
+    <script>
+        var socket = io.connect('/msg')
+        var app = new Vue({
+            el: '#app',
+            data(){
+                return {
+                    message:'hello',
+                    socket:null,
+                    inputVal:'',
+                    msgList:[]
+                }
+            },
+            mounted(){
+                this.getAll();
+
+                socket.on('messageAdded', (data) => {
+                    console.log('on:addmsg', data)
+                    this.getAll()
+                })
+                socket.on('allMessages', (data) => {
+                   console.log('on:allMessages', data)
+                   this.msgList = data; 
+                }) 
+            },
+            methods: {
+                getAll: function() {
+                    console.log('emit:getAllMessages')
+                    socket.emit('getAllMessages')
+                    this.inputVal = ''
+                },
+                create: function(){
+                    console.log('emit:createMessage', this.inputVal)
+                    socket.emit('createMessage', this.inputVal)     
+                }
+            }
+        })
+    </script>
+</body>
+</html>
